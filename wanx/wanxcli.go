@@ -54,7 +54,7 @@ func CreateImageGeneration(ctx context.Context, baseURL string, payload *ImageSy
 // tongyi-wanx-api only support AsyncCall, so we need to warp it to be Sync.
 //
 //nolint:lll
-func SyncCall(ctx context.Context, baseURL string, req *ImageSynthesisRequest, httpcli httpclient.IHttpClient, options ...httpclient.HTTPOption) (*Output, error) {
+func SyncCall(ctx context.Context, baseURL string, req *ImageSynthesisRequest, httpcli httpclient.IHttpClient, options ...httpclient.ReqOption) (*Output, error) {
 	rsp, err := AsyncCall(ctx, baseURL, req, httpcli, options...)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func SyncCall(ctx context.Context, baseURL string, req *ImageSynthesisRequest, h
 // calling tongyi-wanx-api to get image-generation async task id.
 //
 //nolint:lll
-func AsyncCall(ctx context.Context, baseURL string, req *ImageSynthesisRequest, httpcli httpclient.IHttpClient, options ...httpclient.HTTPOption) (*ImageResponse, error) {
+func AsyncCall(ctx context.Context, baseURL string, req *ImageSynthesisRequest, httpcli httpclient.IHttpClient, options ...httpclient.ReqOption) (*ImageResponse, error) {
 	header := map[string]string{"X-DashScope-Async": "enable"}
 	headerOpt := httpclient.WithHeader(header)
 	options = append(options, headerOpt)
@@ -119,7 +119,7 @@ func AsyncCall(ctx context.Context, baseURL string, req *ImageSynthesisRequest, 
 }
 
 //nolint:lll
-func CheckTaskStatus(ctx context.Context, baseURL string, req *TaskRequest, httpcli httpclient.IHttpClient, options ...httpclient.HTTPOption) (*TaskResponse, error) {
+func CheckTaskStatus(ctx context.Context, baseURL string, req *TaskRequest, httpcli httpclient.IHttpClient, options ...httpclient.ReqOption) (*TaskResponse, error) {
 	resp := TaskResponse{}
 	err := httpcli.Get(ctx, TaskURL(baseURL, req.TaskID), nil, &resp, options...)
 	if err != nil {

@@ -65,11 +65,13 @@ func getUploadCertificate(ctx context.Context, model, apiKey string) (*CertRespo
 	}
 
 	headerOpt := httpclient.WithHeader(header)
-	timeoutOpt := httpclient.WithTimeout(3 * time.Second)
+	// timeoutOpt := httpclient.WithTimeout(3 * time.Second)
 
 	cli := httpclient.NewHTTPClient()
+	cli.WithTimeout(3 * time.Second)
 	respData := &CertResponse{}
-	err := cli.Get(ctx, url, params, respData, headerOpt, timeoutOpt)
+	err := cli.Get(ctx, url, params, respData, headerOpt)
+	// err := cli.Get(ctx, url, params, respData, headerOpt)
 	if err != nil {
 		// panic(err)
 		return nil, &WrapMessageError{Message: "certificate Error", Cause: err}

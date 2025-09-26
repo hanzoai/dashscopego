@@ -291,13 +291,16 @@ func (q *TongyiClient) CreateEmbedding(ctx context.Context, r *embedding.Request
 }
 
 func payloadPreCheck[T qwen.IQwenContent](q *TongyiClient, payload *qwen.Request[T]) *qwen.Request[T] {
-	if payload.Model == "" {
-		payload.Model = q.Model
+	// fix data race issue
+    cloned := *payload
+
+	if cloned.Model == "" {
+		cloned.Model = q.Model
 	}
 
-	if payload.Parameters == nil {
-		payload.Parameters = qwen.DefaultParameters()
+	if cloned.Parameters == nil {
+		cloned.Parameters = qwen.DefaultParameters()
 	}
 
-	return payload
+	return &cloned
 }

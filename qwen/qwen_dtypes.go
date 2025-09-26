@@ -3,6 +3,7 @@ package qwen
 import (
 	"context"
 	"encoding/json"
+	"sync"
 )
 
 type Parameters struct {
@@ -74,9 +75,16 @@ func (p *Parameters) SetEnableSearch(value bool) *Parameters {
 	return p
 }
 
+var mu sync.Mutex
+
 func (p *Parameters) SetIncrementalOutput(value bool) *Parameters {
+	mu.Lock()
+	defer mu.Unlock()
+
 	p = p.tryInit()
-	p.IncrementalOutput = value
+	if p != nil && p.IncrementalOutput != value {
+		p.IncrementalOutput = value
+	}
 	return p
 }
 

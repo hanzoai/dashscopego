@@ -19,21 +19,20 @@ import (
 	_ "github.com/devinyf/dashscopego/config" //nolint:revive
 )
 
-type HTTPOption func(c *HTTPCli)
+type ReqOption func(c *http.Request)
 
 //go:generate mockgen -destination=http_client_mock.go -package=httpclient . IHttpClient
 type IHttpClient interface {
-	PostSSE(ctx context.Context, urll string, reqbody interface{}, options ...HTTPOption) (chan string, error)
-	Post(ctx context.Context, urll string, reqbody interface{}, resp interface{}, options ...HTTPOption) error
-	Get(ctx context.Context, urll string, params map[string]string, resp interface{}, options ...HTTPOption) error
-	GetImage(ctx context.Context, imgURL string, options ...HTTPOption) ([]byte, error)
+	PostSSE(ctx context.Context, urll string, reqbody interface{}, options ...ReqOption) (chan string, error)
+	Post(ctx context.Context, urll string, reqbody interface{}, resp interface{}, options ...ReqOption) error
+	Get(ctx context.Context, urll string, params map[string]string, resp interface{}, options ...ReqOption) error
+	GetImage(ctx context.Context, imgURL string, options ...ReqOption) ([]byte, error)
 }
 
 type HTTPCli struct {
 	client http.Client
-	req    *http.Request
 
-	sseStream chan string
+	// sseStream chan string
 }
 
 var _ IHttpClient = (*HTTPCli)(nil)
@@ -41,11 +40,15 @@ var _ IHttpClient = (*HTTPCli)(nil)
 func NewHTTPClient() *HTTPCli {
 	return &HTTPCli{
 		client:    http.Client{},
-		sseStream: nil,
+		// sseStream: nil,
 	}
 }
 
-func (c *HTTPCli) Get(ctx context.Context, urll string, params map[string]string, respbody interface{}, options ...HTTPOption) error {
+func (c *HTTPCli) WithTimeout(timeout time.Duration) {
+	c.client.Timeout = timeout
+}
+
+func (c *HTTPCli) Get(ctx context.Context, urll string, params map[string]string, respbody interface{}, options ...ReqOption) error {
 	if params != nil {
 		var flag bool
 		for k, v := range params {
@@ -78,7 +81,7 @@ func (c *HTTPCli) Get(ctx context.Context, urll string, params map[string]string
 	return nil
 }
 
-func (c *HTTPCli) GetImage(ctx context.Context, imgURL string, options ...HTTPOption) ([]byte, error) {
+func (c *HTTPCli) GetImage(ctx context.Context, imgURL string, options ...ReqOption) ([]byte, error) {
 	resp, err := c.httpInner(ctx, "GET", imgURL, nil, options...)
 	if err != nil {
 		return nil, err
@@ -100,7 +103,7 @@ func (c *HTTPCli) GetImage(ctx context.Context, imgURL string, options ...HTTPOp
 }
 
 // nolint:lll
-func (c *HTTPCli) PostSSE(ctx context.Context, urll string, reqbody interface{}, options ...HTTPOption) (chan string, error) {
+func (c *HTTPCli) PostSSE(ctx context.Context, urll string, reqbody interface{}, options ...ReqOption) (chan string, error) {
 	if reqbody == nil {
 		err := &EmptyRequestBodyError{}
 		return nil, err
@@ -108,7 +111,7 @@ func (c *HTTPCli) PostSSE(ctx context.Context, urll string, reqbody interface{},
 
 	chanBuffer := 500
 	sseStream := make(chan string, chanBuffer)
-	c.sseStream = sseStream
+	// c.sseStream = sseStream
 
 	options = append(options, WithStream(), WithHeader(HeaderMap{"content-type": "application/json"}))
 
@@ -125,10 +128,10 @@ func (c *HTTPCli) PostSSE(ctx context.Context, urll string, reqbody interface{},
 		scanner := bufio.NewScanner(resp.Body)
 		for scanner.Scan() {
 			line := scanner.Text()
-			c.sseStream <- line
+			sseStream <- line
 		}
 
-		close(c.sseStream)
+		close(sseStream)
 	}()
 
 	err := <-errChan
@@ -136,11 +139,11 @@ func (c *HTTPCli) PostSSE(ctx context.Context, urll string, reqbody interface{},
 		return nil, err
 	}
 
-	return c.sseStream, nil
+	return sseStream, nil
 }
 
 // nolint:lll
-func (c *HTTPCli) Post(ctx context.Context, urll string, reqbody interface{}, respbody interface{}, options ...HTTPOption) error {
+func (c *HTTPCli) Post(ctx context.Context, urll string, reqbody interface{}, respbody interface{}, options ...ReqOption) error {
 	// options = append(options, WithHeader(HeaderMap{"content-type": "application/json"}))
 
 	if reqbody == nil {
@@ -195,8 +198,9 @@ func (c *HTTPCli) EncodeJSONBody(body interface{}) (*bytes.Buffer, error) {
 }
 
 // nolint:lll
-func (c *HTTPCli) httpInner(ctx context.Context, method, url string, body interface{}, options ...HTTPOption) (*http.Response, error) {
+func (c *HTTPCli) httpInner(ctx context.Context, method, url string, body interface{}, options ...ReqOption) (*http.Response, error) {
 	var err error
+	var request *http.Request
 
 	bodyBuffer, err := c.EncodeJSONBody(body)
 	if err != nil {
@@ -204,16 +208,16 @@ func (c *HTTPCli) httpInner(ctx context.Context, method, url string, body interf
 	}
 	log.Printf("[http-req] body: %+v\n", bodyBuffer.String())
 
-	c.req, err = http.NewRequestWithContext(ctx, method, url, bodyBuffer)
+	request, err = http.NewRequestWithContext(ctx, method, url, bodyBuffer)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, option := range options {
-		option(c)
+		option(request)
 	}
 
-	resp, err := c.client.Do(c.req)
+	resp, err := c.client.Do(request)
 	if err != nil {
 		return nil, err
 	}

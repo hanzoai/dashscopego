@@ -1,32 +1,33 @@
 package httpclient
 
 import (
-	"time"
+	"net/http"
 )
 
 type HeaderMap map[string]string
 
-func WithHeader(header HeaderMap) HTTPOption {
-	return func(c *HTTPCli) {
+func WithHeader(header HeaderMap) ReqOption {
+	return func(r *http.Request) {
+		r.Header = r.Header.Clone()
 		for k, v := range header {
-			c.req.Header.Set(k, v)
+			r.Header.Set(k, v)
 		}
 	}
 }
 
-func WithTimeout(timeout time.Duration) HTTPOption {
-	return func(c *HTTPCli) {
-		c.client.Timeout = timeout
+func WithStream() ReqOption {
+	return func(r *http.Request) {
+		r.Header.Set("Accept", "text/event-stream")
 	}
 }
 
-func WithStream() HTTPOption {
-	return func(c *HTTPCli) {
-		c.req.Header.Set("Accept", "text/event-stream")
-	}
-}
-
-func WithTokenHeaderOption(token string) HTTPOption {
+func WithTokenHeaderOption(token string) ReqOption {
 	m := map[string]string{"Authorization": "Bearer " + token}
 	return WithHeader(m)
 }
+
+// func WithTimeout(timeout time.Duration) ClientOption {
+// 	return func(c *HTTPCli) {
+// 		c.client.Timeout = timeout
+// 	}
+// }

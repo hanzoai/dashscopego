@@ -39,7 +39,7 @@ func (m *MockIHttpClient) EXPECT() *MockIHttpClientMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockIHttpClient) Get(arg0 context.Context, arg1 string, arg2 map[string]string, arg3 any, arg4 ...HTTPOption) error {
+func (m *MockIHttpClient) Get(arg0 context.Context, arg1 string, arg2 map[string]string, arg3 any, arg4 ...ReqOption) error {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
@@ -58,7 +58,7 @@ func (mr *MockIHttpClientMockRecorder) Get(arg0, arg1, arg2, arg3 any, arg4 ...a
 }
 
 // GetImage mocks base method.
-func (m *MockIHttpClient) GetImage(arg0 context.Context, arg1 string, arg2 ...HTTPOption) ([]byte, error) {
+func (m *MockIHttpClient) GetImage(arg0 context.Context, arg1 string, arg2 ...ReqOption) ([]byte, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1}
 	for _, a := range arg2 {
@@ -78,7 +78,7 @@ func (mr *MockIHttpClientMockRecorder) GetImage(arg0, arg1 any, arg2 ...any) *go
 }
 
 // Post mocks base method.
-func (m *MockIHttpClient) Post(arg0 context.Context, arg1 string, arg2, arg3 any, arg4 ...HTTPOption) error {
+func (m *MockIHttpClient) Post(arg0 context.Context, arg1 string, arg2, arg3 any, arg4 ...ReqOption) error {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
@@ -97,7 +97,7 @@ func (mr *MockIHttpClientMockRecorder) Post(arg0, arg1, arg2, arg3 any, arg4 ...
 }
 
 // PostSSE mocks base method.
-func (m *MockIHttpClient) PostSSE(arg0 context.Context, arg1 string, arg2 any, arg3 ...HTTPOption) (chan string, error) {
+func (m *MockIHttpClient) PostSSE(arg0 context.Context, arg1 string, arg2 any, arg3 ...ReqOption) (chan string, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2}
 	for _, a := range arg3 {

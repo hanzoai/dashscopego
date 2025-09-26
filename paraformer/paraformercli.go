@@ -86,7 +86,7 @@ func VoiceFileToTextGeneration(ctx context.Context, req *AsyncTaskRequest, cli h
 }
 
 //nolint:lll
-func CheckTaskStatus(ctx context.Context, req *TaskResultRequest, httpcli httpclient.IHttpClient, options ...httpclient.HTTPOption) (*AsyncTaskResponse, error) {
+func CheckTaskStatus(ctx context.Context, req *TaskResultRequest, httpcli httpclient.IHttpClient, options ...httpclient.ReqOption) (*AsyncTaskResponse, error) {
 	resp := AsyncTaskResponse{}
 	err := httpcli.Get(ctx, TaskURL(req.TaskID), nil, &resp, options...)
 	if err != nil {
