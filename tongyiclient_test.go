@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	httpclient "github.com/devinyf/dashscopego/httpclient"
-	qwen "github.com/devinyf/dashscopego/qwen"
+	"github.com/casibase/dashscopego/httpclient"
+	"github.com/casibase/dashscopego/qwen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"

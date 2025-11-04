@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/devinyf/dashscopego/config" //nolint:revive
+	_ "github.com/casibase/dashscopego/config" //nolint:revive
 )
 
 type ReqOption func(c *http.Request)
@@ -39,7 +39,7 @@ var _ IHttpClient = (*HTTPCli)(nil)
 
 func NewHTTPClient() *HTTPCli {
 	return &HTTPCli{
-		client:    http.Client{},
+		client: http.Client{},
 		// sseStream: nil,
 	}
 }

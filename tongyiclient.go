@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	embedding "github.com/devinyf/dashscopego/embedding"
-	httpclient "github.com/devinyf/dashscopego/httpclient"
-	"github.com/devinyf/dashscopego/paraformer"
-	"github.com/devinyf/dashscopego/qwen"
-	"github.com/devinyf/dashscopego/wanx"
+	embedding "github.com/casibase/dashscopego/embedding"
+	httpclient "github.com/casibase/dashscopego/httpclient"
+	"github.com/casibase/dashscopego/paraformer"
+	"github.com/casibase/dashscopego/qwen"
+	"github.com/casibase/dashscopego/wanx"
 )
 
 type TongyiClient struct {
@@ -292,7 +292,7 @@ func (q *TongyiClient) CreateEmbedding(ctx context.Context, r *embedding.Request
 
 func payloadPreCheck[T qwen.IQwenContent](q *TongyiClient, payload *qwen.Request[T]) *qwen.Request[T] {
 	// fix data race issue
-    cloned := *payload
+	cloned := *payload
 
 	if cloned.Model == "" {
 		cloned.Model = q.Model

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	httpclient "github.com/devinyf/dashscopego/httpclient"
+	httpclient "github.com/casibase/dashscopego/httpclient"
 )
 
 //

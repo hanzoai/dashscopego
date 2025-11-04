@@ -1,4 +1,4 @@
-module github.com/devinyf/dashscopego
+module github.com/casibase/dashscopego
 
 go 1.22.0
 
