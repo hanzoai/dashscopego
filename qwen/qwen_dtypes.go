@@ -109,8 +109,9 @@ func (p *PluginCall) ToString() string {
 }
 
 type Message[T IQwenContent] struct {
-	Role    string `json:"role"`
-	Content T      `json:"content"`
+	Role             string `json:"role"`
+	Content          T      `json:"content"`
+	ReasoningContent T      `json:"reasoning_content"`
 
 	Name *string `json:"name,omitempty"` // plugin 和 function_call 中使用.
 	// plugin parameters
@@ -130,7 +131,7 @@ type Input[T IQwenContent] struct {
 	Messages []Message[T] `json:"messages"`
 }
 
-type StreamingFunc func(ctx context.Context, chunk []byte) error
+type StreamingFunc func(ctx context.Context, typ string, chunk []byte) error
 
 type Plugins map[string]map[string]any
 
@@ -176,7 +177,7 @@ func (q *Request[T]) SetParameters(value *Parameters) *Request[T] {
 	return q
 }
 
-func (q *Request[T]) SetStreamingFunc(fn func(ctx context.Context, chunk []byte) error) *Request[T] {
+func (q *Request[T]) SetStreamingFunc(fn func(ctx context.Context, typ string, chunk []byte) error) *Request[T] {
 	q.StreamingFn = fn
 	return q
 }

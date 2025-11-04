@@ -82,9 +82,17 @@ func iterateStreamChannel[U IQwenContent](ctx context.Context, channel <-chan St
 			return nil, ErrEmptyResponse
 		}
 
-		chunk := rspData.Output.Output.Choices[0].Message.Content.ToBytes()
-
-		if err := fn(ctx, chunk); err != nil {
+		chunk := []byte{}
+		typ := ""
+		message := rspData.Output.Output.Choices[0].Message
+		if message.ReasoningContent != nil && message.ReasoningContent.ToString() != "" {
+			chunk = message.ReasoningContent.ToBytes()
+			typ = "reason"
+		} else if message.Content != nil && message.Content.ToString() != "" {
+			chunk = message.Content.ToBytes()
+			typ = "message"
+		}
+		if err := fn(ctx, typ, chunk); err != nil {
 			return nil, &WrapMessageError{Message: "StreamingFunc Error", Cause: err}
 		}
 
