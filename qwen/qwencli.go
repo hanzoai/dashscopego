@@ -72,34 +72,6 @@ func SendMessageStream[T IQwenContent, U IQwenContent](ctx context.Context, payl
 	return iterateStreamChannel(ctx, responseChan, payload.StreamingFn)
 }
 
-func extractMessageChunk[U IQwenContent](message *Message[U]) ([]byte, string) {
-	if message.ReasoningContent != nil && message.ReasoningContent.ToString() != "" {
-		return message.ReasoningContent.ToBytes(), "reason"
-	}
-	if message.Content != nil && message.Content.ToString() != "" {
-		return message.Content.ToBytes(), "message"
-	}
-	return []byte{}, ""
-}
-
-func updateOutputMessage[U IQwenContent](outputMessage *OutputResponse[U], rspData StreamOutput[U]) bool {
-	outputMessage.RequestID = rspData.Output.RequestID
-	outputMessage.Usage = rspData.Output.Usage
-	
-	if outputMessage.Output.Choices == nil {
-		outputMessage.Output.Choices = rspData.Output.Output.Choices
-		return false
-	}
-	
-	choice := outputMessage.Output.Choices[0]
-	choice.Message.Role = rspData.Output.Output.Choices[0].Message.Role
-	choice.Message.Content.AppendText(rspData.Output.Output.Choices[0].Message.Content.ToString())
-	choice.FinishReason = rspData.Output.Output.Choices[0].FinishReason
-	outputMessage.Output.Choices[0] = choice
-	
-	return choice.FinishReason != "" && choice.FinishReason != "null"
-}
-
 func iterateStreamChannel[U IQwenContent](ctx context.Context, channel <-chan StreamOutput[U], fn StreamingFunc) (*OutputResponse[U], error) {
 	outputMessage := OutputResponse[U]{}
 	for rspData := range channel {
@@ -110,14 +82,35 @@ func iterateStreamChannel[U IQwenContent](ctx context.Context, channel <-chan St
 			return nil, ErrEmptyResponse
 		}
 
+		chunk := []byte{}
+		typ := ""
 		message := rspData.Output.Output.Choices[0].Message
-		chunk, typ := extractMessageChunk(&message)
+		if message.ReasoningContent != nil && message.ReasoningContent.ToString() != "" {
+			chunk = message.ReasoningContent.ToBytes()
+			typ = "reason"
+		} else if message.Content != nil && message.Content.ToString() != "" {
+			chunk = message.Content.ToBytes()
+			typ = "message"
+		}
 		if err := fn(ctx, typ, chunk); err != nil {
 			return nil, &WrapMessageError{Message: "StreamingFunc Error", Cause: err}
 		}
 
-		if shouldBreak := updateOutputMessage(&outputMessage, rspData); shouldBreak {
-			break
+		outputMessage.RequestID = rspData.Output.RequestID
+		outputMessage.Usage = rspData.Output.Usage
+		if outputMessage.Output.Choices == nil {
+			outputMessage.Output.Choices = rspData.Output.Output.Choices
+		} else {
+			choice := outputMessage.Output.Choices[0]
+			choice.Message.Role = rspData.Output.Output.Choices[0].Message.Role
+			choice.Message.Content.AppendText(rspData.Output.Output.Choices[0].Message.Content.ToString())
+			choice.FinishReason = rspData.Output.Output.Choices[0].FinishReason
+
+			outputMessage.Output.Choices[0] = choice
+
+			if choice.FinishReason != "" && choice.FinishReason != "null" {
+				break
+			}
 		}
 	}
 
