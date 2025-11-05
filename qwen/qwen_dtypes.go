@@ -75,6 +75,7 @@ func (p *Parameters) SetEnableSearch(value bool) *Parameters {
 	return p
 }
 
+//nolint:gochecknoglobals // mutex is required for thread-safe parameter updates
 var mu sync.Mutex
 
 func (p *Parameters) SetIncrementalOutput(value bool) *Parameters {
