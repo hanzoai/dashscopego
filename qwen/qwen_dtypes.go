@@ -6,16 +6,25 @@ import (
 	"sync"
 )
 
+// SearchOptions configures web search options for the model.
+type SearchOptions struct {
+	SearchStrategy string `json:"search_strategy,omitempty"` // turbo (default) | max | agent
+	ForcedSearch   bool   `json:"forced_search,omitempty"`   // whether to force search
+	EnableSource   bool   `json:"enable_source,omitempty"`   // whether to enable source information
+	EnableCitation bool   `json:"enable_citation,omitempty"` // whether to enable citation marks (requires enable_source=true)
+}
+
 type Parameters struct {
-	ResultFormat      string  `json:"result_format,omitempty"`
-	Seed              int     `json:"seed,omitempty"`
-	MaxTokens         int     `json:"max_tokens,omitempty"`
-	TopP              float64 `json:"top_p,omitempty"`
-	TopK              int     `json:"top_k,omitempty"`
-	Temperature       float64 `json:"temperature,omitempty"`
-	EnableSearch      bool    `json:"enable_search,omitempty"`
-	IncrementalOutput bool    `json:"incremental_output,omitempty"`
-	Tools             []Tool  `json:"tools,omitempty"` // function call tools.
+	ResultFormat      string         `json:"result_format,omitempty"`
+	Seed              int            `json:"seed,omitempty"`
+	MaxTokens         int            `json:"max_tokens,omitempty"`
+	TopP              float64        `json:"top_p,omitempty"`
+	TopK              int            `json:"top_k,omitempty"`
+	Temperature       float64        `json:"temperature,omitempty"`
+	EnableSearch      bool           `json:"enable_search,omitempty"`
+	SearchOptions     *SearchOptions `json:"search_options,omitempty"` // web search options
+	IncrementalOutput bool           `json:"incremental_output,omitempty"`
+	Tools             []Tool         `json:"tools,omitempty"` // function call tools.
 }
 
 func NewParameters() *Parameters {
@@ -72,6 +81,53 @@ func (p *Parameters) SetTemperature(value float64) *Parameters {
 func (p *Parameters) SetEnableSearch(value bool) *Parameters {
 	p = p.tryInit()
 	p.EnableSearch = value
+	return p
+}
+
+// SetSearchOptions sets the search options.
+func (p *Parameters) SetSearchOptions(options *SearchOptions) *Parameters {
+	p = p.tryInit()
+	p.SearchOptions = options
+	return p
+}
+
+// SetSearchStrategy sets the search strategy: turbo (default) | max | agent.
+func (p *Parameters) SetSearchStrategy(strategy string) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.SearchStrategy = strategy
+	return p
+}
+
+// SetForcedSearch sets whether to force search.
+func (p *Parameters) SetForcedSearch(forced bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.ForcedSearch = forced
+	return p
+}
+
+// SetEnableSource sets whether to enable source information.
+func (p *Parameters) SetEnableSource(enable bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.EnableSource = enable
+	return p
+}
+
+// SetEnableCitation sets whether to enable citation marks (requires enable_source=true).
+func (p *Parameters) SetEnableCitation(enable bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.EnableCitation = enable
 	return p
 }
 

@@ -8,6 +8,18 @@ const (
 	QwenAudioSubURL      = QwenVLSubURL
 )
 
+// SearchStrategy defines the web search strategy type.
+type SearchStrategy = string
+
+const (
+	// SearchStrategyTurbo is the default strategy that balances response speed and search effectiveness, suitable for most scenarios.
+	SearchStrategyTurbo SearchStrategy = "turbo"
+	// SearchStrategyMax uses a more comprehensive search strategy that can call multiple search engines to get more detailed results, but may take longer to respond.
+	SearchStrategyMax SearchStrategy = "max"
+	// SearchStrategyAgent can call web search tools and LLM multiple times to achieve multi-round information retrieval and content integration.
+	SearchStrategyAgent SearchStrategy = "agent"
+)
+
 type ModelQwen = string
 
 const (
