@@ -12,6 +12,19 @@ type SearchOptions struct {
 	ForcedSearch   bool   `json:"forced_search,omitempty"`   // whether to force search
 	EnableSource   bool   `json:"enable_source,omitempty"`   // whether to enable source information
 	EnableCitation bool   `json:"enable_citation,omitempty"` // whether to enable citation marks (requires enable_source=true)
+	CitationFormat string `json:"citation_format,omitempty"` // citation format, e.g., "[ref_<number>]"
+}
+
+// SearchResult represents a single search result from web search.
+type SearchResult struct {
+	Index int    `json:"index"`
+	Title string `json:"title"`
+	URL   string `json:"url"`
+}
+
+// SearchInfo contains the search results information.
+type SearchInfo struct {
+	SearchResults []SearchResult `json:"search_results,omitempty"`
 }
 
 type Parameters struct {
@@ -254,7 +267,8 @@ type Choice[T IQwenContent] struct {
 
 // new version response format.
 type Output[T IQwenContent] struct {
-	Choices []Choice[T] `json:"choices"`
+	Choices    []Choice[T] `json:"choices"`
+	SearchInfo *SearchInfo `json:"search_info,omitempty"` // search results information
 }
 
 type Usage struct {

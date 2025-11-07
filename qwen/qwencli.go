@@ -98,6 +98,12 @@ func iterateStreamChannel[U IQwenContent](ctx context.Context, channel <-chan St
 
 		outputMessage.RequestID = rspData.Output.RequestID
 		outputMessage.Usage = rspData.Output.Usage
+
+		// Copy SearchInfo if present
+		if rspData.Output.Output.SearchInfo != nil {
+			outputMessage.Output.SearchInfo = rspData.Output.Output.SearchInfo
+		}
+
 		if outputMessage.Output.Choices == nil {
 			outputMessage.Output.Choices = rspData.Output.Output.Choices
 		} else {
