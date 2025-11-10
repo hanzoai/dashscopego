@@ -8,11 +8,12 @@ import (
 
 // SearchOptions configures web search options for the model.
 type SearchOptions struct {
-	SearchStrategy string `json:"search_strategy,omitempty"` // turbo (default) | max | agent
-	ForcedSearch   bool   `json:"forced_search,omitempty"`   // whether to force search
-	EnableSource   bool   `json:"enable_source,omitempty"`   // whether to enable source information
-	EnableCitation bool   `json:"enable_citation,omitempty"` // whether to enable citation marks (requires enable_source=true)
-	CitationFormat string `json:"citation_format,omitempty"` // citation format, e.g., "[ref_<number>]"
+	SearchStrategy      string `json:"search_strategy,omitempty"`       // turbo (default) | max | agent
+	ForcedSearch        bool   `json:"forced_search,omitempty"`         // whether to force search
+	EnableSource        bool   `json:"enable_source,omitempty"`         // whether to enable source information
+	EnableCitation      bool   `json:"enable_citation,omitempty"`       // whether to enable citation marks (requires enable_source=true)
+	CitationFormat      string `json:"citation_format,omitempty"`       // citation format, e.g., "[ref_<number>]"
+	PrependSearchResult bool   `json:"prepend_search_result,omitempty"` // whether to prepend search results to the response
 }
 
 // SearchResult represents a single search result from web search.
@@ -141,6 +142,16 @@ func (p *Parameters) SetEnableCitation(enable bool) *Parameters {
 		p.SearchOptions = &SearchOptions{}
 	}
 	p.SearchOptions.EnableCitation = enable
+	return p
+}
+
+// SetPrependSearchResult sets whether to prepend search results to the response.
+func (p *Parameters) SetPrependSearchResult(enable bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.PrependSearchResult = enable
 	return p
 }
 
