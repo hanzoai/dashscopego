@@ -1,0 +1,322 @@
+package qwen
+
+import (
+	"context"
+	"encoding/json"
+	"sync"
+)
+
+// SearchOptions configures web search options for the model.
+type SearchOptions struct {
+	SearchStrategy      string `json:"search_strategy,omitempty"`       // turbo (default) | max | agent
+	ForcedSearch        bool   `json:"forced_search,omitempty"`         // whether to force search
+	EnableSource        bool   `json:"enable_source,omitempty"`         // whether to enable source information
+	EnableCitation      bool   `json:"enable_citation,omitempty"`       // whether to enable citation marks (requires enable_source=true)
+	CitationFormat      string `json:"citation_format,omitempty"`       // citation format, e.g., "[ref_<number>]"
+	PrependSearchResult bool   `json:"prepend_search_result,omitempty"` // whether to prepend search results to the response
+}
+
+// SearchResult represents a single search result from web search.
+type SearchResult struct {
+	Icon     string `json:"icon,omitempty"`
+	SiteName string `json:"site_name,omitempty"`
+	Index    int    `json:"index"`
+	Title    string `json:"title"`
+	URL      string `json:"url"`
+}
+
+// SearchInfo contains the search results information.
+type SearchInfo struct {
+	SearchResults []SearchResult `json:"search_results,omitempty"`
+}
+
+type Parameters struct {
+	ResultFormat      string         `json:"result_format,omitempty"`
+	Seed              int            `json:"seed,omitempty"`
+	MaxTokens         int            `json:"max_tokens,omitempty"`
+	TopP              float64        `json:"top_p,omitempty"`
+	TopK              int            `json:"top_k,omitempty"`
+	Temperature       float64        `json:"temperature,omitempty"`
+	EnableSearch      bool           `json:"enable_search,omitempty"`
+	SearchOptions     *SearchOptions `json:"search_options,omitempty"` // web search options
+	IncrementalOutput bool           `json:"incremental_output,omitempty"`
+	Tools             []Tool         `json:"tools,omitempty"` // function call tools.
+}
+
+func NewParameters() *Parameters {
+	return &Parameters{}
+}
+
+const DefaultTemperature = 1.0
+
+func DefaultParameters() *Parameters {
+	q := Parameters{}
+	q.
+		SetResultFormat("message").
+		SetTemperature(DefaultTemperature)
+
+	return &q
+}
+
+func (p *Parameters) SetResultFormat(value string) *Parameters {
+	p = p.tryInit()
+	p.ResultFormat = value
+	return p
+}
+
+func (p *Parameters) SetSeed(value int) *Parameters {
+	p = p.tryInit()
+	p.Seed = value
+	return p
+}
+
+func (p *Parameters) SetMaxTokens(value int) *Parameters {
+	p = p.tryInit()
+	p.MaxTokens = value
+	return p
+}
+
+func (p *Parameters) SetTopP(value float64) *Parameters {
+	p = p.tryInit()
+	p.TopP = value
+	return p
+}
+
+func (p *Parameters) SetTopK(value int) *Parameters {
+	p = p.tryInit()
+	p.TopK = value
+	return p
+}
+
+func (p *Parameters) SetTemperature(value float64) *Parameters {
+	p.tryInit()
+	p.Temperature = value
+	return p
+}
+
+func (p *Parameters) SetEnableSearch(value bool) *Parameters {
+	p = p.tryInit()
+	p.EnableSearch = value
+	return p
+}
+
+// SetSearchOptions sets the search options.
+func (p *Parameters) SetSearchOptions(options *SearchOptions) *Parameters {
+	p = p.tryInit()
+	p.SearchOptions = options
+	return p
+}
+
+// SetSearchStrategy sets the search strategy: turbo (default) | max | agent.
+func (p *Parameters) SetSearchStrategy(strategy string) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.SearchStrategy = strategy
+	return p
+}
+
+// SetForcedSearch sets whether to force search.
+func (p *Parameters) SetForcedSearch(forced bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.ForcedSearch = forced
+	return p
+}
+
+// SetEnableSource sets whether to enable source information.
+func (p *Parameters) SetEnableSource(enable bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.EnableSource = enable
+	return p
+}
+
+// SetEnableCitation sets whether to enable citation marks (requires enable_source=true).
+func (p *Parameters) SetEnableCitation(enable bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.EnableCitation = enable
+	return p
+}
+
+// SetPrependSearchResult sets whether to prepend search results to the response.
+func (p *Parameters) SetPrependSearchResult(enable bool) *Parameters {
+	p = p.tryInit()
+	if p.SearchOptions == nil {
+		p.SearchOptions = &SearchOptions{}
+	}
+	p.SearchOptions.PrependSearchResult = enable
+	return p
+}
+
+var mu sync.Mutex
+
+func (p *Parameters) SetIncrementalOutput(value bool) *Parameters {
+	mu.Lock()
+	defer mu.Unlock()
+
+	p = p.tryInit()
+	if p != nil && p.IncrementalOutput != value {
+		p.IncrementalOutput = value
+	}
+	return p
+}
+
+func (p *Parameters) tryInit() *Parameters {
+	if p == nil {
+		p = &Parameters{}
+	}
+	return p
+}
+
+type PluginCall struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"` // TODO: 临时使用string...后续设计通用 interface 方便自定义扩展.
+}
+
+func (p *PluginCall) ToString() string {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+
+type Message[T IQwenContent] struct {
+	Role             string `json:"role"`
+	Content          T      `json:"content"`
+	ReasoningContent T      `json:"reasoning_content"`
+
+	Name *string `json:"name,omitempty"` // plugin 和 function_call 中使用.
+	// plugin parameters
+	PluginCall *PluginCall `json:"plugin_call,omitempty"`
+	// function call input parameters
+	ToolCalls *[]ToolCalls `json:"tool_calls,omitempty"`
+}
+
+func (m *Message[T]) HasToolCallInput() bool {
+	if m.ToolCalls != nil && len(*m.ToolCalls) > 0 {
+		return true
+	}
+	return false
+}
+
+type Input[T IQwenContent] struct {
+	Messages []Message[T] `json:"messages"`
+}
+
+type StreamingFunc func(ctx context.Context, typ string, chunk []byte) error
+
+type Plugins map[string]map[string]any
+
+func (p Plugins) toString() string {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+
+const (
+	PluginCodeInterpreter = "code_interpreter"
+	PluginPDFExtracter    = "pdf_extracter"
+)
+
+type Request[T IQwenContent] struct {
+	Model      string      `json:"model"`
+	Input      Input[T]    `json:"input"`
+	Parameters *Parameters `json:"parameters,omitempty"`
+	// streaming callback function.
+	StreamingFn StreamingFunc `json:"-"`
+	// qwen-vl model need to upload image to oss for recognition.
+	HasUploadOss bool `json:"-"`
+	// plugin
+	Plugins Plugins `json:"-"`
+	// function_call
+	Tools []Tool `json:"-"`
+}
+
+func (q *Request[T]) SetModel(value string) *Request[T] {
+	q.Model = value
+	return q
+}
+
+func (q *Request[T]) SetInput(value Input[T]) *Request[T] {
+	q.Input = value
+	return q
+}
+
+func (q *Request[T]) SetParameters(value *Parameters) *Request[T] {
+	q.Parameters = value
+	return q
+}
+
+func (q *Request[T]) SetStreamingFunc(fn func(ctx context.Context, typ string, chunk []byte) error) *Request[T] {
+	q.StreamingFn = fn
+	return q
+}
+
+type StreamOutput[T IQwenContent] struct {
+	ID         string            `json:"id"`
+	Event      string            `json:"event"`
+	HTTPStatus int               `json:"http_status"`
+	Output     OutputResponse[T] `json:"output"`
+	Err        error             `json:"error"`
+}
+
+type Choice[T IQwenContent] struct {
+	Message      Message[T]   `json:"message,omitempty"`
+	Messages     []Message[T] `json:"messages,omitempty"` // TODO: 部分 plugin 会返回message列表.
+	FinishReason string       `json:"finish_reason"`
+}
+
+// new version response format.
+type Output[T IQwenContent] struct {
+	Choices    []Choice[T] `json:"choices"`
+	SearchInfo *SearchInfo `json:"search_info,omitempty"` // search results information
+}
+
+type Usage struct {
+	TotalTokens  int `json:"total_tokens"`
+	InputTokens  int `json:"input_tokens"`
+	OutputTokens int `json:"output_tokens"`
+}
+
+type OutputResponse[T IQwenContent] struct {
+	Output    Output[T] `json:"output"`
+	Usage     Usage     `json:"usage"`
+	RequestID string    `json:"request_id"`
+	// ErrMsg    string `json:"error_msg"`
+}
+
+func (t *OutputResponse[T]) GetChoices() []Choice[T] {
+	return t.Output.Choices
+}
+
+func (t *OutputResponse[T]) GetUsage() Usage {
+	return t.Usage
+}
+
+func (t *OutputResponse[T]) GetRequestID() string {
+	return t.RequestID
+}
+
+func (t *OutputResponse[T]) ToJSONStr() string {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+
+func (t *OutputResponse[T]) HasToolCallInput() bool {
+	return t.Output.Choices[0].Message.HasToolCallInput()
+}

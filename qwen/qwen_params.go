@@ -1,0 +1,106 @@
+package qwen
+
+const (
+	DashScopeBaseURL     = "https://dashscope.aliyuncs.com/api"
+	DashScopeIntlBaseURL = "https://dashscope-intl.aliyuncs.com/api"
+	QwenSubURL           = "/v1/services/aigc/text-generation/generation"
+	QwenVLSubURL         = "/v1/services/aigc/multimodal-generation/generation"
+	QwenAudioSubURL      = QwenVLSubURL
+)
+
+// SearchStrategy defines the web search strategy type.
+type SearchStrategy = string
+
+const (
+	// SearchStrategyTurbo is the default strategy that balances response speed and search effectiveness, suitable for most scenarios.
+	SearchStrategyTurbo SearchStrategy = "turbo"
+	// SearchStrategyMax uses a more comprehensive search strategy that can call multiple search engines to get more detailed results, but may take longer to respond.
+	SearchStrategyMax SearchStrategy = "max"
+	// SearchStrategyAgent can call web search tools and LLM multiple times to achieve multi-round information retrieval and content integration.
+	SearchStrategyAgent SearchStrategy = "agent"
+)
+
+type ModelQwen = string
+
+const (
+	// text-generation model.
+	QwenLong           ModelQwen = "qwen-long"
+	QwenTurbo          ModelQwen = "qwen-turbo"
+	QwenPlus           ModelQwen = "qwen-plus"
+	QwenMax            ModelQwen = "qwen-max"
+	QwenMax1201        ModelQwen = "qwen-max-1201"
+	QwenMaxLongContext ModelQwen = "qwen-max-longcontext"
+
+	// multi-modal model.
+	QwenVLPlus     ModelQwen = "qwen-vl-plus"
+	QwenVLMax      ModelQwen = "qwen-vl-max"
+	QwenAudioTurbo ModelQwen = "qwen-audio-turbo"
+)
+
+// text-generation only.
+func URLQwen(baseURL string) string {
+	return baseURL + QwenSubURL
+}
+
+// multimodal.
+func URLQwenVL(baseURL string) string {
+	return baseURL + QwenVLSubURL
+}
+
+func URLQwenAudio(baseURL string) string {
+	return baseURL + QwenAudioSubURL
+}
+
+type RoleType = string
+
+const (
+	RoleSystem    RoleType = "system"
+	RoleUser      RoleType = "user"
+	RoleAssistant RoleType = "assistant"
+	RolePlugin    RoleType = "plugin"
+	RoleTool      RoleType = "tool"
+)
+
+/*
+func ChoseModelQwen(model string) ModelQwen {
+	m := Model{}
+	switch model {
+	case "qwen-turbo":
+		return m.QwenTurbo()
+	case "qwen-plus":
+		return m.QwenPlus()
+	case "qwen-max":
+		return m.QwenMax()
+	case "qwen-max-1201":
+		return m.QwenMax1201()
+	case "qwen-max-longcontext":
+		return m.QwenMaxLongContext()
+	default:
+		fmt.Println("target model not found, use default model: qwen-turbo")
+		return m.QwenTurbo()
+	}
+}
+
+type Model struct{}
+
+func (m *Model) QwenTurbo() ModelQwen {
+	return QwenTurbo
+}
+
+func (m *Model) QwenPlus() ModelQwen {
+	return QwenPlus
+}
+
+func (m *Model) QwenMax() ModelQwen {
+	return QwenMax
+}
+
+func (m *Model) QwenMax1201() ModelQwen {
+	return QwenMax1201
+}
+
+func (m *Model) QwenMaxLongContext() ModelQwen {
+	return QwenMaxLongContext
+}
+
+*/
