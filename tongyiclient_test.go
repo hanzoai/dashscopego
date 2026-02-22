@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/casibase/dashscopego/httpclient"
-	"github.com/casibase/dashscopego/qwen"
+	"github.com/hanzoai/dashscopego/httpclient"
+	"github.com/hanzoai/dashscopego/qwen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"

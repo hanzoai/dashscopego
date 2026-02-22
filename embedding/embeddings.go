@@ -3,7 +3,7 @@ package embedding
 import (
 	"context"
 
-	"github.com/casibase/dashscopego/httpclient"
+	"github.com/hanzoai/dashscopego/httpclient"
 )
 
 //nolint:lll
