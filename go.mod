@@ -1,4 +1,4 @@
-module github.com/casibase/dashscopego
+module github.com/hanzoai/dashscopego
 
 go 1.22.0
 

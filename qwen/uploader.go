@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	httpclient "github.com/casibase/dashscopego/httpclient"
+	httpclient "github.com/hanzoai/dashscopego/httpclient"
 	"github.com/gabriel-vasile/mimetype"
 )
 

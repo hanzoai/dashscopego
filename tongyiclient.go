@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	embedding "github.com/casibase/dashscopego/embedding"
-	httpclient "github.com/casibase/dashscopego/httpclient"
-	"github.com/casibase/dashscopego/paraformer"
-	"github.com/casibase/dashscopego/qwen"
-	"github.com/casibase/dashscopego/wanx"
+	embedding "github.com/hanzoai/dashscopego/embedding"
+	httpclient "github.com/hanzoai/dashscopego/httpclient"
+	"github.com/hanzoai/dashscopego/paraformer"
+	"github.com/hanzoai/dashscopego/qwen"
+	"github.com/hanzoai/dashscopego/wanx"
 )
 
 type TongyiClient struct {

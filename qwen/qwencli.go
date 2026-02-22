@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	httpclient "github.com/casibase/dashscopego/httpclient"
+	httpclient "github.com/hanzoai/dashscopego/httpclient"
 )
 
 //nolint:lll
