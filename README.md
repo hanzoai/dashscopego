@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/hero.svg" alt="dashscopego" width="880"></p>
+
 ### dashscopego
 
 ⚠️ 阿里云百炼平台已经提供了对 OpenAI 的兼容接口的支持: github.com/openai/openai-go 建议直接使用此种方式调用通义API
