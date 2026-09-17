@@ -1,6 +1,6 @@
 module github.com/hanzoai/dashscopego
 
-go 1.26.5
+go 1.27.1
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.2
