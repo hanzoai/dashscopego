@@ -1,5 +1,7 @@
 ### dashscopego
 
+[![Open in Hanzo](https://hanzo.app/badges/open-in-hanzo.svg)](https://hanzo.app/dev/open?repo=github.com/hanzoai/dashscopego&ref=main&action=open) [![Edit with Hanzo](https://hanzo.app/badges/edit-with-hanzo.svg)](https://hanzo.app/dev/open?repo=github.com/hanzoai/dashscopego&ref=main&action=edit)
+
 ⚠️ 阿里云百炼平台已经提供了对 OpenAI 的兼容接口的支持: github.com/openai/openai-go 建议直接使用此种方式调用通义API
 
 阿里云平台 dashscope api 的 golang 封装 (非官方)
